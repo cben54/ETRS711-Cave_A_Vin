@@ -1,0 +1,145 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Mes Étagères</h1>
+    <a href="{{ url_for('ajouter_etagere') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Ajouter une étagère</a>
+</div>
+
+{% if etageres %}
+    {% for etagere in etageres %}
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="mb-0">{{ etagere.nom }}</h4>
+                <small class="text-muted">
+                    {% if etagere.emplacement %}{{ etagere.emplacement }}{% endif %}
+                </small>
+            </div>
+            <div>
+                <a href="{{ url_for('modifier_etagere', etagere_id=etagere.id) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i> Modifier</a>
+                
+                <form action="{{ url_for('supprimer_etagere', etagere_id=etagere.id) }}" method="POST" class="form-supprimer" onsubmit="return confirm('Voulez-vous vraiment supprimer cette étagère ? Elle doit être vide.');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                </form>
+            </div>
+        </div>
+
+        {% if etagere.bouteilles %}
+        <ul class="list-group list-group-flush">
+            {% for b in etagere.bouteilles %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    {% if b.etiquette %}
+                        <img src="{{ url_for('static', filename='etiquettes/' + b.etiquette) }}" alt="Étiquette" class="etiquette-img">
+                    {% else %}
+                        <div class="etiquette-img bg-light d-flex align-items-center justify-content-center text-muted">
+                            <i class="bi bi-image fs-3"></i>
+                        </div>
+                    {% endif %}
+                    <div>
+                        <strong>{{ b.nom }}</strong> ({{ b.annee }}) - <span class="badge bg-primary rounded-pill">{{ b.quantite }}x</span>
+                        <br>
+                        <small class="text-muted">{{ b.domaine }} - {{ b.type }}</small>
+                    </div>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-sm btn-outline-success btn-boire" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#modalConsommer"
+                            data-bouteille-id="{{ b.id }}"
+                            data-bouteille-nom="{{ b.nom }}"
+                            data-bouteille-max="{{ b.quantite }}">
+                        <i class="bi bi-cup-straw"></i>
+                    </button>
+                    
+                    <a href="{{ url_for('modifier_bouteille', bouteille_id=b.id) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                    
+                    <form action="{{ url_for('supprimer_bouteille', bouteille_id=b.id) }}" method="POST" class="form-supprimer" onsubmit="return confirm('Voulez-vous vraiment supprimer cette bouteille ?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                    </form>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="card-body text-center">
+            <p class="text-muted">Aucune bouteille sur cette étagère.</p>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+{% else %}
+<div class="text-center p-5 bg-light rounded">
+    <p class="lead">Vous n'avez pas encore d'étagère.</p>
+    <a href="{{ url_for('ajouter_etagere') }}" class="btn btn-primary">Créez votre première étagère</a>
+</div>
+{% endif %}
+
+
+<div class="modal fade" id="modalConsommer" tabindex="-1" aria-labelledby="modalConsommerLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalConsommerLabel">Consommer une bouteille</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="formConsommer" method="POST">
+        <div class="modal-body">
+            <p>Vous buvez : <strong id="nomBouteilleModal">...</strong></p>
+            <div class="mb-3">
+                <label for="quantite_consomme" class="form-label">Quantité consommée</label>
+                <input type="number" class="form-control" id="quantite_consomme" name="quantite_consomme" value="1" min="1" required>
+            </div>
+            <hr>
+            <p class="text-muted small">Optionnel : Laissez une note de dégustation</p>
+            <div class="mb-3">
+                <label for="note" class="form-label">Note (sur 10)</label>
+                <input type="number" class="form-control" id="note" name="note" min="0" max="10" step="0.5">
+            </div>
+             <div class="mb-3">
+                <label for="commentaire" class="form-label">Commentaire</label>
+                <textarea class="form-control" id="commentaire" name="commentaire" rows="3"></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="submit" class="btn btn-success">Confirmer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %} {% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', (event) => {
+    var modalConsommer = document.getElementById('modalConsommer')
+    if (modalConsommer) {
+        modalConsommer.addEventListener('show.bs.modal', function (event) {
+            // Bouton qui a cliqué
+            var button = event.relatedTarget
+            
+            // Extraire les infos des attributs data-bs-*
+            var bouteilleId = button.getAttribute('data-bouteille-id')
+            var bouteilleNom = button.getAttribute('data-bouteille-nom')
+            var bouteilleMax = button.getAttribute('data-bouteille-max')
+
+            // Mettre à jour le contenu du modal
+            var modalTitle = modalConsommer.querySelector('.modal-title')
+            var modalBodyNom = modalConsommer.querySelector('#nomBouteilleModal')
+            var inputQuantite = modalConsommer.querySelector('#quantite_consomme')
+            var formConsommer = modalConsommer.querySelector('#formConsommer')
+
+            modalTitle.textContent = 'Consommer ' + bouteilleNom
+            modalBodyNom.textContent = bouteilleNom
+            inputQuantite.value = 1 // Réinitialiser à 1
+            inputQuantite.setAttribute('max', bouteilleMax) // Définit la quantité max
+            
+            // Définit l'URL de l'action du formulaire
+            formConsommer.action = "/consommer_bouteille/" + bouteilleId
+        })
+    }
+});
+</script>
+{% endblock %}

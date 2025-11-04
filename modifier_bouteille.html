@@ -1,0 +1,74 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="card-title mb-4">Modifier la bouteille</h2>
+                
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="nom" class="form-label">Nom du vin</label>
+                            <input type="text" class="form-control" id="nom" name="nom" value="{{ bouteille.nom }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="domaine" class="form-label">Domaine (Optionnel)</label>
+                            <input type="text" class="form-control" id="domaine" name="domaine" value="{{ bouteille.domaine }}">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="annee" class="form-label">Année (Millésime)</label>
+                            <input type="number" class="form-control" id="annee" name="annee" min="1900" max="2100" value="{{ bouteille.annee }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="type" class="form-label">Type</label>
+                            <input type="text" class="form-control" id="type" name="type" value="{{ bouteille.type }}">
+                        </div>
+						<div class="col-md-4 mb-3">
+                            <label for="quantite" class="form-label">Quantité</label>
+                            <input type="number" class="form-control" id="quantite" name="quantite" min="0" value="{{ bouteille.quantite }}" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="etagere_id" class="form-label">Étagère</label>
+                        <select class="form-select" id="etagere_id" name="etagere_id" required>
+                            <option value="">Sélectionnez une étagère</option>
+                            {% for e in etageres %}
+                            <option value="{{ e.id }}" {% if e.id == bouteille.etagere_id %}selected{% endif %}>
+                                {{ e.nom }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="note" class="form-label">Note (Optionnel)</Flabel>
+                            <input type="number" class="form-control" id="note" name="note" min="0" max="10" step="0.5" value="{{ bouteille.note | default('', true) }}">
+                        </div>
+                         <div class="col-md-8 mb-3">
+                            <label for="etiquette" class="form-label">Changer l'étiquette</label>
+                            <input class="form-control" type="file" id="etiquette" name="etiquette">
+                            {% if bouteille.etiquette %}
+                            <small class="form-text">Fichier actuel: {{ bouteille.etiquette }}</small>
+                            <img src="{{ url_for('static', filename='etiquettes/' + bouteille.etiquette) }}" class="img-thumbnail mt-2" style="max-width: 100px;">
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="commentaire" class="form-label">Commentaire (Optionnel)</label>
+                        <textarea class="form-control" id="commentaire" name="commentaire" rows="3">{{ bouteille.commentaire }}</textarea>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('home') }}" class="btn btn-secondary me-md-2">Annuler</a>
+                        <button type="submit" class="btn btn-primary">Mettre à jour</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

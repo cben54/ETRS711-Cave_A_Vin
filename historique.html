@@ -1,0 +1,118 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Mon historique de dégustation</h1>
+</div>
+
+{% if notes and notes|length > 0 %}
+<p class="text-muted">Cliquez sur une dégustation pour voir les détails.</p>
+<div class="list-group">
+    
+    {% for b in notes %}
+    <a href="#" class="list-group-item list-group-item-action mb-3 shadow-sm rounded" 
+       data-bs-toggle="modal" 
+       data-bs-target="#modalDetailsNote"
+       data-nom="{{ b.nom }}"
+       data-annee="{{ b.annee }}"
+       data-domaine="{{ b.domaine | default('N/A', true) }}"
+       data-note="{{ b.note_degustation | default('N/A', true) }}"
+       data-commentaire="{{ b.commentaire_degustation | default('Aucun commentaire.', true) }}"
+       data-moyenne="{{ '%.1f' | format(b.moyenne_notes) if b.moyenne_notes else 'N/A' }}"> 
+        
+        <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">{{ b.nom }} ({{ b.annee }})</h5>
+            {% if b.note_degustation %}
+                <span class="badge bg-success fs-6">{{ b.note_degustation }}/10</span>
+            {% else %}
+                <span class="badge bg-secondary fs-6">Non notée</span>
+            {% endif %}
+        </div>
+        <p class="mb-1 text-muted">{{ b.domaine }} - {{ b.type }} ({{b.quantite}} bue)</p>
+    </a>
+    {% endfor %}
+    
+</div>
+{% else %}
+<div class="text-center p-5 bg-light rounded">
+    <p class="lead">Vous n'avez pas encore consommé de bouteille.</p>
+    <p>Utilisez le bouton "Boire" <i class="bi bi-cup-straw"></i> sur la page d'accueil pour consommer et noter un vin.</p>
+</div>
+{% endif %}
+
+
+<div class="modal fade" id="modalDetailsNote" tabindex="-1" aria-labelledby="modalDetailsNoteLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title" id="modalDetailsNoteLabel">Détails de dégustation</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <h3 id="modal-nom" class="mb-0">...</h3>
+        <p id="modal-details" class="text-muted fs-5">...</p>
+        <hr>
+        
+        <div class="row text-center">
+            <div class="col-6">
+                <h5>Votre note</h5>
+                <h2 class="display-4 text-success" id="modal-note">...</h2>
+            </div>
+            <div class="col-6">
+                <h5>Moyenne</h5>
+                <h2 class="display-4 text-primary" id="modal-moyenne">...</h2>
+            </div>
+        </div>
+        
+        <h5 class="mt-3">Votre commentaire</h5>
+        <blockquote class="blockquote bg-light p-3 rounded">
+            <p id="modal-commentaire" class="mb-0 fst-italic">...</p>
+        </blockquote>
+        
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn-secondary" data-bs-dismiss="modal">Fermer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', (event) => {
+    var modalDetails = document.getElementById('modalDetailsNote');
+    if (modalDetails) {
+        // 'show.bs.modal' est un événement qui se déclenche quand le pop-up s'ouvre
+        modalDetails.addEventListener('show.bs.modal', function (event) {
+            
+            // 'event.relatedTarget' est le lien <a> sur lequel on a cliqué
+            var lien = event.relatedTarget; 
+            
+            // 1. Récupérer les données depuis les attributs 'data-*' du lien
+            var nom = lien.getAttribute('data-nom');
+            var annee = lien.getAttribute('data-annee');
+            var domaine = lien.getAttribute('data-domaine');
+            var note = lien.getAttribute('data-note');
+            var commentaire = lien.getAttribute('data-commentaire');
+            var moyenne = lien.getAttribute('data-moyenne');
+
+            // 2. Remplir le HTML du modal avec ces données
+            modalDetails.querySelector('#modal-nom').textContent = nom;
+            modalDetails.querySelector('#modal-details').textContent = domaine + ' - ' + annee;
+            
+            // Gérer l'affichage si la note est "N/A"
+            var noteDisplay = (note === 'N/A') ? note : note + ' / 10';
+            modalDetails.querySelector('#modal-note').textContent = noteDisplay;
+
+            var moyenneDisplay = (moyenne === 'N/A') ? moyenne : moyenne + ' / 10';
+            modalDetails.querySelector('#modal-moyenne').textContent = moyenneDisplay;
+
+            modalDetails.querySelector('#modal-commentaire').textContent = commentaire;
+        });
+    }
+});
+</script>
+{% endblock %}

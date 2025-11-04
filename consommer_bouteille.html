@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Consommer une bouteille</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<h1>Consommer : {{ bouteille.nom }} ({{ bouteille.annee }})</h1>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <ul class="flashes">
+      {% for category, message in messages %}
+        <li class="{{ category }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
+<div class="etagere-card">
+<form method="POST">
+    <label for="quantite_consomme">Quantité consommée (max {{ bouteille.quantite }}) :</label>
+    <input type="number" id="quantite_consomme" name="quantite_consomme" min="1" max="{{ bouteille.quantite }}" required>
+
+    <label for="note">Note (0 à 10) :</label>
+    <input type="number" id="note" name="note" step="0.1" min="0" max="10" required>
+
+    <label for="commentaire">Commentaire :</label>
+    <textarea id="commentaire" name="commentaire" rows="4"></textarea>
+
+    <input type="submit" value="Valider la consommation">
+</form>
+</div>
+
+<a href="{{ url_for('home') }}" class="button">Retour à l'accueil</a>
+
+</body>
+</html>
